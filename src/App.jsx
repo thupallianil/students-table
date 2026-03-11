@@ -2,7 +2,6 @@ import "./App.css";
 import { useState, useEffect } from "react";
 import StudentForm from "./components/StudentForm";
 import StudentTable from "./components/StudentTable";
-import studentsData from "./data/students.json";
 
 function App() {
 
@@ -10,41 +9,56 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [editStudent, setEditStudent] = useState(null);
 
+  // Fetch students from backend
+  const fetchStudents = async () => {
+    const res = await fetch("http://localhost:5000/students");
+    const data = await res.json();
+    setStudents(data);
+    setLoading(false);
+  };
+
+  // Load students when app starts
   useEffect(() => {
-
-    setTimeout(() => {
-      setStudents(studentsData);
-      setLoading(false);
-    }, 1500);
-
+    fetchStudents();
   }, []);
 
-  const addStudent = (student) => {
+  // Add student
+  const addStudent = async (student) => {
 
-    const newStudent = {
-      ...student,
-      id: Date.now()
-    };
+    await fetch("http://localhost:5000/students", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(student)
+    });
 
-    setStudents([...students, newStudent]);
+    fetchStudents();
   };
 
-  const updateStudent = (student) => {
+  // Update student
+  const updateStudent = async (student) => {
 
-    setStudents(
-      students.map((s) =>
-        s.id === student.id ? student : s
-      )
-    );
+    await fetch(`http://localhost:5000/students/${student.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(student)
+    });
 
     setEditStudent(null);
+    fetchStudents();
   };
 
-  const deleteStudent = (id) => {
+  // Delete student
+  const deleteStudent = async (id) => {
 
-    setStudents(
-      students.filter((s) => s.id !== id)
-    );
+    await fetch(`http://localhost:5000/students/${id}`, {
+      method: "DELETE"
+    });
+
+    fetchStudents();
   };
 
   return (
